@@ -28,6 +28,7 @@
 #include <linux/tboot.h>
 #include <linux/trace_events.h>
 #include <linux/entry-kvm.h>
+#include <linux/time.h>
 
 #include <asm/apic.h>
 #include <asm/asm.h>
@@ -47,6 +48,7 @@
 #include <asm/spec-ctrl.h>
 #include <asm/virtext.h>
 #include <asm/vmx.h>
+#include <asm/tsc.h>
 
 #include "capabilities.h"
 #include "cpuid.h"
@@ -219,6 +221,18 @@ static const struct {
 	[VMENTER_L1D_FLUSH_EPT_DISABLED] = {"EPT disabled", false},
 	[VMENTER_L1D_FLUSH_NOT_REQUIRED] = {"not required", false},
 };
+
+/* Assignment CMPE-283 code edit
+   Declaring variables to count exits and the exit time	
+*/
+extern atomic_t exits;
+extern atomic64_t exits_time;
+
+void add_exit_time(u64 time_taken){
+  atomic64_add(time_taken, &exits_time);
+}
+
+int vmx_handle_exit_int(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath);
 
 #define L1D_CACHE_ORDER 4
 static void *vmx_l1d_flush_pages;
@@ -5923,16 +5937,43 @@ void dump_vmcs(void)
 		pr_err("Virtual processor ID = 0x%04x\n",
 		       vmcs_read16(VIRTUAL_PROCESSOR_ID));
 }
+/* Assignment-2 CMPE-283 Code edit */
+/* Wrapper function over vmx_handle_exit */
+static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
+{
+  static int result = 0;
+  u64 start_t, end_t, total_t;
+
+  // Every time the guest has exited, increment the number of exits
+  atomic_inc(&exits);
+	
+  // Record the begin time of the exit
+  start_t = rdtsc();
+
+  // Call the actual exit handler
+  result = vmx_handle_exit_int(vcpu, exit_fastpath);
+  
+  // Record the time at the end of the exit
+  end_t = rdtsc();
+  total_t = (end_t - start_t);
+
+  add_exit_time(total_t);
+  
+  return result;
+}
+
 
 /*
  * The guest has exited.  See if we can fix it or if we need userspace
  * assistance.
  */
-static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
+int vmx_handle_exit_int(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 {
+	/* Assignment-2 CMPE-283 Code edit ends*/
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
 	u32 exit_reason = vmx->exit_reason;
 	u32 vectoring_info = vmx->idt_vectoring_info;
+	
 
 	/*
 	 * Flush logged GPAs PML buffer, this will make dirty_bitmap more
@@ -6064,7 +6105,7 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
 					 kvm_vmx_max_exit_handlers);
 	if (!kvm_vmx_exit_handlers[exit_reason])
 		goto unexpected_vmexit;
-
+	
 	return kvm_vmx_exit_handlers[exit_reason](vcpu);
 
 unexpected_vmexit:
