@@ -3,11 +3,29 @@ Team Members:
 Gunjan Srivastava : gunjan.srivastava@sjsu.edu
 Anupama Kurudi : anupama.kurudi@sjsu.edu
 
+QUESTION 1: 
+
+- Both Team Members installed and ran the above setup in their respective systems.
+- Gunjan Srivastava researched and implemented the code for calculating the timestamp on the 
+processor cycle.
+- Anupama Kurudi researched and implemented the code for calculating the number of exits 
+and storing it in the respective registers.
+- We worked together to merge our code and implement both functionalities on each of our local
+environments.
+
+
+QUESTION 2:
+
+STEPS USED TO COMPLETE THE ASSIGNMENT:
 
 Forked the repo from “https://github.com/torvalds/linux ”
+-------------------------------------------------------------------------- 
 Install and configured VM Fusion to have Ubuntu OS running on it with nested virtualization enabled and increasing the memory to 200 GB
+-------------------------------------------------------------------------- 
 On Ubuntu, configure KVM
+-------------------------------------------------------------------------- 
 Download and install Virt-Manager. Using this install “LUBUNTU” to be the nested VM.
+-------------------------------------------------------------------------- 
 Build the kernel in Ubuntu with the following commands -
 - sudo bash
 - apt-get install build-essential kernel-package fakeroot libncurses5-dev libssl-dev ccache bison flex libelf-dev
@@ -16,13 +34,15 @@ Build the kernel in Ubuntu with the following commands -
 - make oldconfig      
 - make && make modules && make install && make modules_install
 - reboot
-
+-------------------------------------------------------------------------- 
 Check the kernel version to be updated to 5.10.0 - rc2
 - uname -r
-
+-------------------------------------------------------------------------- 
 Made changes to the following files:
+
 - arch/x86/kvm/cpuid.c : In the kvm_emulate_cpuid function-
-/*Assignment2 CMPE283 code edit*/
+
+	/*Assignment2 CMPE283 code edit*/
 	if (eax  ==  0x4fffffff){
 	    printk("***********DEBUG_BEGIN***********\n");
 	    ebx = ( (atomic64_read(&exits_time) >> 32) );
@@ -36,7 +56,9 @@ Made changes to the following files:
 	} else {
 	    kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, true);
 	}
-arch/x86/kvm/vmx/vmx.c: In the vmx_handle_exit function -
+	
+- arch/x86/kvm/vmx/vmx.c: In the vmx_handle_exit function -
+
 	 static int result = 0;
   	u64 start_t, end_t, total_t;
  
@@ -56,15 +78,19 @@ arch/x86/kvm/vmx/vmx.c: In the vmx_handle_exit function -
   	add_exit_time(total_t);
   
   	return result;
+-------------------------------------------------------------------------- 
  
 Run the following commands after making the changes:
+
 - make && make modules && make install && make modules_install
 - reboot
- 
+-------------------------------------------------------------------------- 
  
 Run the CPUID leaf function from the nested VM - Lubuntu
+-------------------------------------------------------------------------- 
 Run dmesg on Ubuntu to check the logs
-Following are the results from dmesg:
+-------------------------------------------------------------------------- 
+Following are the results seen in dmesg when the "cpuid -l 0x4fffffff" command is executed mutliple times:
 [  237.697573] ***********DEBUG_BEGIN***********
 [  237.697576] **** EBX:= 3
 [  237.697577] **** ECX:= 3160224408
@@ -95,16 +121,24 @@ Following are the results from dmesg:
 [  260.593590] **** ECX:= 3178269409
 [  260.593591] **** Exit_Reason : ALL , ExitCount : 28588845
 [  260.593592] ***********DEBUG_END***********
-
- 
-
+-------------------------------------------------------------------------- 
 
 
-Both Team Members installed and ran the above setup in their respective systems.
-Gunjan Srivastava researched and implemented the code for calculating the timestamp on the 
-processor cycle.
-Anupama Kurudi researched and implemented the code for calculating the number of exits 
-and storing it in the respective registers.
-We worked together to merge our code and implement both functionalities on each of our local
-environments.
+QUESTION 3:
+Comment on the frequency of exits – does the number of exits increase at a stable rate? Or are there more exits performed during certain VM operations? 
+Approximately how many exits does a full VM boot entail?
+
+Answer:
+No, the number of exits do not increase at a stable rate. 
+
+Other than the "cpuid" command which invokes the "CPUID" instruction and consequently an exit, the guest OS is running many other instructions behind the scenes. 
+These other instructions could cause exits as they need to be handled in the VMM as well and this gets added to the exit-counter. 
+So yes, there could be more exits performed during a certain VM operation. This can be seen by the variable increase in the number of exit counts 
+as seen in successive executions of the "cpuid" command.
+
+The number of exits during a full VM boot is approximately equal to the number of exits seen when the first "cpuid -l 0x4ffffffff" command is executed. 
+This command is executed in the terminal as soon as the guest OS is loaded in the inner VM (KVM). It is reasonable to estimate that the exit count seen in the 
+first execution of the command is the total number of exits that were encountered during VM boot. This value in our run is approximately around 28.5 million exits.
+
+
 
