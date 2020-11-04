@@ -65,7 +65,36 @@ Run the following commands after making the changes:
 Run the CPUID leaf function from the nested VM - Lubuntu
 Run dmesg on Ubuntu to check the logs
 Following are the results from dmesg:
- 
+###[  237.697573] ***********DEBUG_BEGIN***********
+[  237.697576] **** EBX:= 3
+[  237.697577] **** ECX:= 3160224408
+[  237.697578] **** Exit_Reason : ALL , ExitCount : 28586213
+[  237.697579] ***********DEBUG_END***********
+[  237.697995] ***********DEBUG_BEGIN***********
+[  237.697997] **** EBX:= 3
+[  237.697998] **** ECX:= 3160401406
+[  237.697999] **** Exit_Reason : ALL , ExitCount : 28586226
+[  237.697999] ***********DEBUG_END***********
+[  244.515548] ***********DEBUG_BEGIN***********
+[  244.515552] **** EBX:= 3
+[  244.515553] **** ECX:= 3166089913
+[  244.515554] **** Exit_Reason : ALL , ExitCount : 28587079
+[  244.515554] ***********DEBUG_END***********
+[  244.515787] ***********DEBUG_BEGIN***********
+[  244.515789] **** EBX:= 3
+[  244.515790] **** ECX:= 3166145753
+[  244.515791] **** Exit_Reason : ALL , ExitCount : 28587089
+[  244.515791] ***********DEBUG_END***********
+[  260.593339] ***********DEBUG_BEGIN***********
+[  260.593342] **** EBX:= 3
+[  260.593343] **** ECX:= 3178212155
+[  260.593344] **** Exit_Reason : ALL , ExitCount : 28588837
+[  260.593345] ***********DEBUG_END***********
+[  260.593587] ***********DEBUG_BEGIN***********
+[  260.593589] **** EBX:= 3
+[  260.593590] **** ECX:= 3178269409
+[  260.593591] **** Exit_Reason : ALL , ExitCount : 28588845
+[  260.593592] ***********DEBUG_END***********
 
  
 
