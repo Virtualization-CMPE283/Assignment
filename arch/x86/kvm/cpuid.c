@@ -23,7 +23,9 @@
 #include "mmu.h"
 #include "trace.h"
 #include "pmu.h"
-
+/*Assignment2 CMPE 283 code edit*/
+static atomic_t exits;
+static atomic64_t exits_time;
 /*
  * Unlike "struct cpuinfo_x86.x86_capability", kvm_cpu_caps doesn't need to be
  * aligned to sizeof(unsigned long) because it's not accessed via bitops.
@@ -1106,6 +1108,23 @@ int kvm_emulate_cpuid(struct kvm_vcpu *vcpu)
 	if (cpuid_fault_enabled(vcpu) && !kvm_require_cpl(vcpu, 0))
 		return 1;
 
+	eax = kvm_rax_read(vcpu);
+	ecx = kvm_rcx_read(vcpu);
+	/*Assignment2 CMPE283 code edit*/
+	if (eax  ==  0x4fffffff){
+	    printk("***********DEBUG_BEGIN***********\n");
+	    ebx = ( (atomic64_read(&exits_time) >> 32) );
+	    ecx = ( (atomic64_read(&exits_time) & 0x00000000FFFFFFFF ));
+	    eax = atomic_read(&exits);
+	    //	    printk("**** (Total number of exits: %ul EAX:= %u", exits, eax);
+	    printk("**** EBX:= %u", ebx);
+	    printk("**** ECX:= %u", ecx);
+	    printk("**** Exit_Reason : ALL , ExitCount : %u\n",eax); //Debug Statement
+	    printk("***********DEBUG_END***********\n");
+	} else {
+	    kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, true);
+	}
+	
 	eax = kvm_rax_read(vcpu);
 	ecx = kvm_rcx_read(vcpu);
 	kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, false);
