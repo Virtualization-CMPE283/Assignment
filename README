@@ -1,8 +1,9 @@
 CMPE-283 Virtualization Technologies Assignment-2 
+-------------------------------------------------------------------------- 
 Team Members:
 Gunjan Srivastava : gunjan.srivastava@sjsu.edu
 Anupama Kurudi : anupama.kurudi@sjsu.edu
-
+-------------------------------------------------------------------------- 
 QUESTION 1: 
 
 - Both Team Members installed and ran the above setup in their respective systems.
@@ -12,7 +13,7 @@ processor cycle.
 and storing it in the respective registers.
 - We worked together to merge our code and implement both functionalities on each of our local
 environments.
-
+-------------------------------------------------------------------------- 
 
 QUESTION 2:
 
