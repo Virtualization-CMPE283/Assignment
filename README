@@ -1,18 +1,81 @@
-Linux kernel
-============
+CMPE-283 Virtualization Technologies Assignment-2 
+Team Members:
+Gunjan Srivastava : gunjan.srivastava@sjsu.edu
+Anupama Kurudi : anupama.kurudi@sjsu.edu
 
-There are several guides for kernel developers and users. These guides can
-be rendered in a number of formats, like HTML and PDF. Please read
-Documentation/admin-guide/README.rst first.
 
-In order to build the documentation, use ``make htmldocs`` or
-``make pdfdocs``.  The formatted documentation can also be read online at:
+Forked the repo from “https://github.com/torvalds/linux ”
+Install and configured VM Fusion to have Ubuntu OS running on it with nested virtualization enabled and increasing the memory to 200 GB
+On Ubuntu, configure KVM
+Download and install Virt-Manager. Using this install “LUBUNTU” to be the nested VM.
+Build the kernel in Ubuntu with the following commands -
+- sudo bash
+- apt-get install build-essential kernel-package fakeroot libncurses5-dev libssl-dev ccache bison flex libelf-dev
+- uname -a      
+- cp /boot/config-5.4.0-52-generic    ./.config 
+- make oldconfig      
+- make && make modules && make install && make modules_install
+- reboot
 
-    https://www.kernel.org/doc/html/latest/
+Check the kernel version to be updated to 5.10.0 - rc2
+- uname -r
 
-There are various text files in the Documentation/ subdirectory,
-several of them using the Restructured Text markup notation.
+Made changes to the following files:
+- arch/x86/kvm/cpuid.c : In the kvm_emulate_cpuid function-
+/*Assignment2 CMPE283 code edit*/
+	if (eax  ==  0x4fffffff){
+	    printk("***********DEBUG_BEGIN***********\n");
+	    ebx = ( (atomic64_read(&exits_time) >> 32) );
+	    ecx = ( (atomic64_read(&exits_time) & 0x00000000FFFFFFFF ));
+	    eax = atomic_read(&exits);
+	    //	    printk("**** (Total number of exits: %ul EAX:= %u", exits, eax);
+	    printk("**** EBX:= %u", ebx);
+	    printk("**** ECX:= %u", ecx);
+	    printk("**** Exit_Reason : ALL , ExitCount : %u\n",eax); //Debug Statement
+	    printk("***********DEBUG_END***********\n");
+	} else {
+	    kvm_cpuid(vcpu, &eax, &ebx, &ecx, &edx, true);
+	}
+arch/x86/kvm/vmx/vmx.c: In the vmx_handle_exit function -
+	 static int result = 0;
+  	u64 start_t, end_t, total_t;
+ 
+ 	 // Every time the guest has exited, increment the number of exits
+  	atomic_inc(&exits);
+	
+  	// Record the begin time of the exit
+  	start_t = rdtsc();
+ 
+  	// Call the actual exit handler
+  	result = vmx_handle_exit_int(vcpu, exit_fastpath);
+  
+ 	 // Record the time at the end of the exit
+  	end_t = rdtsc();
+  	total_t = (end_t - start_t);
+ 
+  	add_exit_time(total_t);
+  
+  	return result;
+ 
+Run the following commands after making the changes:
+- make && make modules && make install && make modules_install
+- reboot
+ 
+ 
+Run the CPUID leaf function from the nested VM - Lubuntu
+Run dmesg on Ubuntu to check the logs
+Following are the results from dmesg:
+ 
 
-Please read the Documentation/process/changes.rst file, as it contains the
-requirements for building and running the kernel, and information about
-the problems which may result by upgrading your kernel.
+ 
+
+
+
+Both Team Members installed and ran the above setup in their respective systems.
+Gunjan Srivastava researched and implemented the code for calculating the timestamp on the 
+processor cycle.
+Anupama Kurudi researched and implemented the code for calculating the number of exits 
+and storing it in the respective registers.
+We worked together to merge our code and implement both functionalities on each of our local
+environments.
+
