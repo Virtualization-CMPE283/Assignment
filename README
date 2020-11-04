@@ -65,7 +65,7 @@ Run the following commands after making the changes:
 Run the CPUID leaf function from the nested VM - Lubuntu
 Run dmesg on Ubuntu to check the logs
 Following are the results from dmesg:
-###[  237.697573] ***********DEBUG_BEGIN***********
+[  237.697573] ***********DEBUG_BEGIN***********
 [  237.697576] **** EBX:= 3
 [  237.697577] **** ECX:= 3160224408
 [  237.697578] **** Exit_Reason : ALL , ExitCount : 28586213
